@@ -12,7 +12,7 @@ model User {
     id Int @id @default(autoincrement())
 
     fullName String
-    email String
+    email String @unique
     password String
 
     createdAt DateTime @default(now())
@@ -25,7 +25,21 @@ model Product {
     name String
     imageUrl String
     description String
+    
+    manufacture Manufacture @relation(fields: [manufacture_id], references: [id])
+    manufacture_id Int 
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    
+}
+
+
+model Manufacture {
+    id Int @id @default(autoincrement())
+
+    name String @unique
+    description String
+
+    product Product[]
 }
