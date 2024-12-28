@@ -1,9 +1,11 @@
+'use client'
 import { cn } from '@/lib/utils';
 import React from 'react'
 import { Container } from './container';
 import Image  from 'next/image';
 import { Button } from '../ui/button';
 import { ArrowRight, ShoppingCart, User } from 'lucide-react';
+import { SearchInput } from './index';
 
 interface Props {
     className?: string;
@@ -21,6 +23,7 @@ export const Header: React.FC<Props> = ({className}) => {
                         <h1 className='text-sm text-gray-400 leading-3'>прохлада для всего дома</h1>
                     </div>
                 </div>  
+                <div className='mx-10 flex-1'><SearchInput /></div>
                 {/* Правая часть */}
                 <div className='flex items-center gap-3'>
                         <Button variant='outline' className='flex items-center gap-1'>
