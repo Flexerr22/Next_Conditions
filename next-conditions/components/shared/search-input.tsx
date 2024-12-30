@@ -4,18 +4,24 @@ import { Search } from "lucide-react";
 import React from "react";
 import { useClickAway } from "react-use";
 import Link from "next/link";
+import { Api } from "@/app/sevices/api-client";
 
 interface Props {
     className?: string
 }
 
 export const SearchInput: React.FC<Props> = ({className}) => {
+    const [searchQuery, setSearchQuery] = React.useState('');
     const [focused, setFocused] = React.useState(false);
     const ref = React.useRef(null)
 
     useClickAway(ref, () => {
         setFocused(false)
     })
+
+    React.useEffect(() => {
+        Api.products.search(searchQuery)
+    }, [searchQuery])
     return (
         <>
             {focused && <div className="fixed top-0 left-0 bottom-0 right-0 bg-black/50 z-30"></div>}
@@ -27,6 +33,7 @@ export const SearchInput: React.FC<Props> = ({className}) => {
                     className="rounded-2xl  border-none w-full bg-gray-100 outline-none pl-11" 
                     placeholder="Поиск рецептов..."
                     onFocus={() => setFocused(true)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className={cn('absolute w-full bg-white rounded-xl py-2 top-14 shadow-md transition-all duration-200 invisible opacity-0 z-30',
                     focused && 'visible opacity-100 top-12',
