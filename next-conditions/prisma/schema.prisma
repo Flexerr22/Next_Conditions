@@ -34,7 +34,6 @@ model Product {
     name String
     imageUrl String
     description String
-    attributes Json
     price Int
     manufacture Manufacture @relation(fields: [manufacture_id], references: [id])
     manufacture_id Int 
@@ -43,8 +42,26 @@ model Product {
     updatedAt DateTime @updatedAt
     
     cartItems CartItem[]
+
+    attributes AttributeValue[]
 }
 
+model Attribute {
+    id Int @id @default(autoincrement())
+    name String
+    attributeValues AttributeValue[]
+}
+
+model AttributeValue {
+    id Int @id @default(autoincrement())
+    value String // Или Json, если нужны разные типы значений
+    product Product @relation(fields: [product_id], references: [id])
+    product_id Int
+    attribute Attribute @relation(fields: [attribute_id], references: [id])
+    attribute_id Int
+
+    @@unique([product_id, attribute_id])
+}
 
 model Manufacture {
     id Int @id @default(autoincrement())
