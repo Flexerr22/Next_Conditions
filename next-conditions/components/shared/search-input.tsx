@@ -22,19 +22,19 @@ export const SearchInput: React.FC<Props> = ({className}) => {
         setFocused(false)
     })
 
-    useDebounce(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    useDebounce(
         async () => {
-           try{
+          try {
             const response = await Api.products.search(searchQuery)
             setProducts(response)
-           } catch (error) {
+          } catch (error) {
             console.log(error)
-           }
-        }    
-    }, 
-    250,
-    [searchQuery])
+          }
+        },
+        250,
+        [searchQuery]
+      )
+      
 
     const onClickItem = () => {
         setFocused(false)
