@@ -5,14 +5,14 @@ export async function GET(req: NextRequest) {
     
     const query = req.nextUrl.searchParams.get('query') || '';
 
-    const product = await prisma.product.findFirst({
+    const attributes = await prisma.attribute.findFirst({
         where: {
             id: Number(query),
         },
     });
 
-    if (product) {
-        return NextResponse.json(product);
+    if (attributes) {
+        return NextResponse.json(attributes);
     }
 
     else {
