@@ -11,12 +11,12 @@ interface ReturnProps {
     onAddId: (id: string) => void
 }
  
-export const useFilterAttributes = (): ReturnProps => {
+export const useFilterAttributes = (values: string[] = []): ReturnProps => {
 
     const [attributes, setAttributes] = useState<Attribute[]>([])
     const [loading, setLoading] = useState(true)
 
-    const [selectedIds, {toggle}] = useSet(new Set<string>([]))
+    const [selectedIds, {toggle}] = useSet(new Set<string>(values))
 
     useEffect(() => {
         async function fetchAttributes() {
@@ -34,5 +34,9 @@ export const useFilterAttributes = (): ReturnProps => {
         fetchAttributes()
     }, [])
 
-    return {attributes, loading, onAddId: toggle, selectedAttributes: selectedIds}
+    const setSelectedAttributes = (ids: string[]) => {
+        ids.forEach(selectedIds.add)
+    }
+
+    return {attributes, loading, onAddId: toggle, selectedAttributes: selectedIds, setSelectedAttributes}
 }

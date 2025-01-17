@@ -8,27 +8,37 @@ import {
 } from "./index";
 import { Input } from "../ui/input";
 import { useFilterAttributes } from "@/hooks/useFilterAttributes";
-import { useSet } from "react-use";
-
+import { useSearchParam, useSet } from "react-use";
+import qs from "qs";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 interface Props {
   className?: string;
 }
 
 interface PriceProps {
-  priceFrom: number
-  priceTo: number
+  priceFrom?: number
+  priceTo?: number
+}
+
+interface QueryFilters  extends  PriceProps{
+  attributes: string,
+  sizes: string,
+  inventor: string
 }
 
 export const Filters: React.FC<Props> = ({ className }) => {
-  const {attributes, loading, onAddId, selectedAttributes} = useFilterAttributes()
-  const [sizes, {toggle: toggleSizes}] = useSet(new Set<string>([]))
-  const [inventor, {toggle: toggleInvtentor}] = useSet(new Set<string>([]))
+  const searchParams = useSearchParams() as unknown as Map<keyof QueryFilters, string>
+  const router = useRouter()
+  const {attributes, loading, onAddId,  selectedAttributes} = useFilterAttributes(
+    searchParams.get('attributes')?.split(',')
+  )
+  const [sizes, {toggle: toggleSizes}] = useSet(new Set<string>(searchParams.has('sizes') ? searchParams.get('sizes')?.split(',') : []))
+  const [inventor, {toggle: toggleInvtentor}] = useSet(new Set<string>(searchParams.has('inventor') ? searchParams.get('inventor')?.split(',') : []))
   
-  const [prices, setPrice] = useState<PriceProps>(
-    {
-      priceFrom: 0,
-      priceTo: 100000
-    })
+  const [prices, setPrice] = useState<PriceProps>({
+    priceFrom: Number(searchParams.get('priceFrom')) || undefined,
+    priceTo: Number(searchParams.get('priceTo')) || undefined,
+  })
 
 
 
@@ -41,10 +51,23 @@ export const Filters: React.FC<Props> = ({ className }) => {
 
   const items = attributes.map((item) => ({value: String(item.id), text: item.name}))
 
-  useEffect(() => {
-    console.log({sizes, inventor, prices, selectedAttributes})
-  }, [sizes, inventor, prices, selectedAttributes])
+  console.log(searchParams, 999)
 
+  useEffect(() => {
+    const filters = {
+      ...prices,
+      sizes: Array.from(sizes),
+      inventor: Array.from(inventor),
+      attributes: Array.from(selectedAttributes)
+    }
+    const query = qs.stringify(filters, {
+      arrayFormat: 'comma'
+    })
+
+    router.push(`?${query}`, {scroll: false})
+  }, [sizes, inventor, prices, selectedAttributes, router])
+
+   
   return (
     <div className={className}>
       <Title text="Фильтрация" size="sm" className="mb-5 font-bold" />
@@ -99,7 +122,7 @@ export const Filters: React.FC<Props> = ({ className }) => {
         min={0} 
         max={100000} 
         step={500} 
-        value={[prices.priceFrom, prices.priceTo]} 
+        value={[prices.priceFrom || 0, prices.priceTo || 100000]} 
         onValueChange={([priceFrom, priceTo]) => setPrice({priceFrom, priceTo})}
         />
       </div>
