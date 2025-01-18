@@ -1,72 +1,32 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   CheckboxFiltersGroups,
-  FilterCheckbox,
   RangeSlider,
   Title,
 } from "./index";
 import { Input } from "../ui/input";
-import { useFilterAttributes } from "@/hooks/useFilterAttributes";
-import { useSearchParam, useSet } from "react-use";
-import qs from "qs";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useAttributes } from "@/hooks/use-attributes";
+import { useFilters } from "@/hooks/use-filters";
+import { useQueryFilters } from "@/hooks/use-query-filters";
+
 interface Props {
   className?: string;
 }
 
-interface PriceProps {
-  priceFrom?: number
-  priceTo?: number
-}
-
-interface QueryFilters  extends  PriceProps{
-  attributes: string,
-  sizes: string,
-  inventor: string
-}
-
 export const Filters: React.FC<Props> = ({ className }) => {
-  const searchParams = useSearchParams() as unknown as Map<keyof QueryFilters, string>
-  const router = useRouter()
-  const {attributes, loading, onAddId,  selectedAttributes} = useFilterAttributes(
-    searchParams.get('attributes')?.split(',')
-  )
-  const [sizes, {toggle: toggleSizes}] = useSet(new Set<string>(searchParams.has('sizes') ? searchParams.get('sizes')?.split(',') : []))
-  const [inventor, {toggle: toggleInvtentor}] = useSet(new Set<string>(searchParams.has('inventor') ? searchParams.get('inventor')?.split(',') : []))
-  
-  const [prices, setPrice] = useState<PriceProps>({
-    priceFrom: Number(searchParams.get('priceFrom')) || undefined,
-    priceTo: Number(searchParams.get('priceTo')) || undefined,
-  })
 
+  const {attributes, loading} = useAttributes()
+  const filters = useFilters()
 
-
-  const updatePrice = (name: keyof PriceProps, value: number) => {
-    setPrice({
-      ...prices,
-      [name]: value,
-    })
-  }
+  useQueryFilters(filters)
 
   const items = attributes.map((item) => ({value: String(item.id), text: item.name}))
 
-  console.log(searchParams, 999)
-
-  useEffect(() => {
-    const filters = {
-      ...prices,
-      sizes: Array.from(sizes),
-      inventor: Array.from(inventor),
-      attributes: Array.from(selectedAttributes)
-    }
-    const query = qs.stringify(filters, {
-      arrayFormat: 'comma'
-    })
-
-    router.push(`?${query}`, {scroll: false})
-  }, [sizes, inventor, prices, selectedAttributes, router])
-
+  const updatePrices = (prices: number[]) => {
+    filters.setPrices('priceFrom', prices[0])
+    filters.setPrices('priceTo', prices[1])
+  }
    
   return (
     <div className={className}>
@@ -76,8 +36,8 @@ export const Filters: React.FC<Props> = ({ className }) => {
         name="sizes"
         className="mb-5"
         title="Размеры"
-        onClickCheckbox={toggleSizes}
-        selected={sizes}
+        onClickCheckbox={filters.setSizes}
+        selected={filters.sizes}
         items={[
           {text: '7', value: '7'},
           {text: '9', value: '9'},
@@ -89,8 +49,8 @@ export const Filters: React.FC<Props> = ({ className }) => {
         name="inventor"
         className="mb-5"
         title="Инвенторная технология"
-        onClickCheckbox={toggleInvtentor}
-        selected={inventor}
+        onClickCheckbox={filters.setInventor}
+        selected={filters.inventor}
         items={[
           {text: 'Да', value: '1'},
           {text: 'Нет', value: '2'}
@@ -105,16 +65,16 @@ export const Filters: React.FC<Props> = ({ className }) => {
             placeholder="0"
             min={0}
             max={30000}
-            value={String(prices.priceFrom)}
-            onChange={(e) => updatePrice('priceFrom', Number(e.target.value))}
+            value={String(filters.prices.priceFrom)}
+            onChange={(e) => filters.setPrices('priceFrom', Number(e.target.value))}
           />
           <Input
             type="number"
             placeholder="40000"
             min={40000}
             max={100000}
-            value={String(prices.priceTo)}
-            onChange={(e) => updatePrice('priceTo', Number(e.target.value))}
+            value={String(filters.prices.priceTo)}
+            onChange={(e) => filters.setPrices('priceTo', Number(e.target.value))}
           />
         </div>
 
@@ -122,8 +82,8 @@ export const Filters: React.FC<Props> = ({ className }) => {
         min={0} 
         max={100000} 
         step={500} 
-        value={[prices.priceFrom || 0, prices.priceTo || 100000]} 
-        onValueChange={([priceFrom, priceTo]) => setPrice({priceFrom, priceTo})}
+        value={[filters.prices.priceFrom || 0, filters.prices.priceTo || 100000]} 
+        onValueChange={updatePrices}
         />
       </div>
 
@@ -135,8 +95,8 @@ export const Filters: React.FC<Props> = ({ className }) => {
         defaultItems={items.slice(0, 6)}
         items={items}
         loading={loading}
-        onClickCheckbox={onAddId}
-        selected={selectedAttributes}
+        onClickCheckbox={filters.setSelectedAttributes}
+        selected={filters.selectedAttributes}
       />
     </div>
   );
